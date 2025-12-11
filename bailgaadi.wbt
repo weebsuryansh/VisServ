@@ -5,6 +5,7 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/CircleArena.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/factory/containers/protos/WoodenBox.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/camera/protos/ArucoMarker.proto"
 
 WorldInfo {
   basicTimeStep 64
@@ -97,4 +98,73 @@ TurtleBot3Burger {
   translation 0.6785354451710421 -1.4378693951102757 -0.0004935222175054196
   rotation -0.00468922020706095 -0.0026130314443274837 -0.9999855915364584 2.120293908073814
   controller "turtlebot3_ostacle_avoidance"
+  extensionSlot [
+    Camera {
+      translation 0.06 0 0.17
+      rotation 0 1 0 -1.5708
+      name "front_camera"
+      width 640
+      height 480
+      fieldOfView 1.1
+      near 0.02
+      far 4
+      enableRecognition TRUE
+      recognition Recognition {
+      }
+    }
+  ]
+}
+
+Shape {
+  translation 0 -2.6 0.005
+  appearance PBRAppearance {
+    baseColor 0 0.6 0.2
+    roughness 1
+    metalness 0
+  }
+  geometry Cylinder {
+    height 0.01
+    radius 0.25
+  }
+}
+
+Shape {
+  translation 2.4 2.4 0.005
+  appearance PBRAppearance {
+    baseColor 0.1 0.3 0.9
+    roughness 1
+    metalness 0
+  }
+  geometry Cylinder {
+    height 0.01
+    radius 0.25
+  }
+}
+
+ArucoMarker {
+  translation 0 -2.1 0.12
+  rotation 0 0 1 1.5708
+  size 0.22
+  markerId 1
+}
+
+ArucoMarker {
+  translation 0.9 -0.9 0.12
+  rotation 0 0 1 0
+  size 0.22
+  markerId 2
+}
+
+ArucoMarker {
+  translation -0.9 0.5 0.12
+  rotation 0 0 1 1.2
+  size 0.22
+  markerId 3
+}
+
+ArucoMarker {
+  translation 2.0 1.7 0.12
+  rotation 0 0 1 -0.6
+  size 0.22
+  markerId 4
 }
