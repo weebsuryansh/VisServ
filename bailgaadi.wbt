@@ -11,8 +11,8 @@ WorldInfo {
   basicTimeStep 64
 }
 Viewpoint {
-  orientation 0.5736801911629024 -0.5803952417067486 -0.57795536304412 4.211265306390162
-  position -1.0109894435591646 -0.8357435036844657 2.081443537914731
+  orientation 0.020610154321401317 0.9948871006298147 -0.09886798541109795 0.4130891327464595
+  position -9.357295851132147 -1.4222351872753958 4.357682189899604
   follow "TurtleBot3Burger"
   followType "Pan and Tilt Shot"
 }
@@ -25,11 +25,11 @@ CircleArena {
   wallHeight 0.4
 }
 WoodenBox {
-  translation 0.467367 -0.545426 0.15
+  translation 0.207367 -0.445426 0.15
   size 0.3 0.3 0.3
 }
 WoodenBox {
-  translation 1.26618 1.07342 0.15
+  translation 1.48618 0.93342 0.15
   name "wooden box(1)"
   size 0.3 0.3 0.3
 }
@@ -39,18 +39,8 @@ WoodenBox {
   size 0.3 0.3 0.3
 }
 WoodenBox {
-  translation -1.27271 1.08968 0.15
-  name "wooden box(3)"
-  size 0.3 0.3 0.3
-}
-WoodenBox {
   translation -1.09887 -0.301011 0.15
   name "wooden box(4)"
-  size 0.3 0.3 0.3
-}
-WoodenBox {
-  translation -2.71307 -0.22263 0.15
-  name "wooden box(7)"
   size 0.3 0.3 0.3
 }
 WoodenBox {
@@ -59,23 +49,29 @@ WoodenBox {
   size 0.3 0.3 0.3
 }
 WoodenBox {
-  translation 2.30103 0.203241 0.15
-  name "wooden box(9)"
-  size 0.3 0.3 0.3
-}
-WoodenBox {
-  translation 0.005323 -1.57959 0.15
-  name "wooden box(5)"
-  size 0.3 0.3 0.3
-}
-WoodenBox {
   translation -1.0974 -1.8598 0.15
   name "wooden box(6)"
   size 0.3 0.3 0.3
 }
 TurtleBot3Burger {
-  translation -1.5 -0.88 0
-  rotation 0 0 1 0
+  hidden position_0_0 47.08852969372186
+  hidden position_0_1 -47.0885120027565
+  hidden position_0_2 347.4569204197657
+  hidden position2_0_2 -0.07801464593998875
+  hidden position3_0_2 -0.0580525661529438
+  hidden linearVelocity_0 -0.011784660650664686 -0.0022236362846160098 -9.322192401240182e-11
+  hidden angularVelocity_0 -2.221996650981668e-08 7.416205007670665e-08 0.35977180034796136
+  hidden rotation_9 0 -1 0 4.747748763714832
+  hidden linearVelocity_9 0.005490378732792953 -0.02828885622376634 6.210092648645538e-09
+  hidden angularVelocity_9 0.9521858576785174 0.1837331302262968 0.362912822569971
+  hidden rotation_10 -0.694490904007861 2.3264308822783277e-06 0.7195014831429689 3.1415927359023876
+  hidden linearVelocity_10 -0.00549057571556832 0.028289513760656578 -5.854827264737712e-09
+  hidden angularVelocity_10 -0.9521857815636868 -0.1837329560601648 0.3629510657263557
+  hidden rotation_11 -0.9981960816906689 -0.0005817181254609155 0.06003535709411743 4.397473288042985
+  hidden linearVelocity_11 -0.028547057156571402 -0.0055342124682141594 -4.4711889838469526e-10
+  hidden angularVelocity_11 1.383553114294254 -7.136764289643504 2.6879149690895403e-14
+  translation -1.5002841785198096 -0.8803375063116501 -0.0004931117122553771
+  rotation 0.004702682156890752 0.005745373270602107 0.9999724373534067 -1.3676825903511212
   controller "tb3_pbvs_aruco"
   extensionSlot [
     Camera {
@@ -89,7 +85,7 @@ TurtleBot3Burger {
   ]
 }
 Solid {
-  translation -0.312722 -0.896095 0.1
+  translation 0.797278 -1.46609 0.25
   rotation 0 0 1 1.5708
   children [
     Shape {
@@ -101,14 +97,14 @@ Solid {
         }
       }
       geometry Box {
-        size 0.2 0.001 0.2
+        size 0.5 0.001 0.5
       }
     }
   ]
   name "aruco_board_1"
 }
 Solid {
-  translation -0.25 0.11 0.1
+  translation 0.48 0.11 0.25
   children [
     Shape {
       appearance PBRAppearance {
@@ -119,14 +115,14 @@ Solid {
         }
       }
       geometry Box {
-        size 0.2 0.001 0.2
+        size 0.5 0.001 0.5
       }
     }
   ]
   name "aruco_board_2"
 }
 Solid {
-  translation 0.6 0.11 0.1
+  translation 2.17 -0.2 0.25
   rotation 0 0 1 -1.5707953071795862
   children [
     Shape {
@@ -138,14 +134,14 @@ Solid {
         }
       }
       geometry Box {
-        size 0.2 0.001 0.2
+        size 0.5 0.001 0.5
       }
     }
   ]
   name "aruco_board_3"
 }
 Solid {
-  translation 0.584999 1.7698 0.1
+  translation 1.925 1.7698 0.25
   rotation 0 0 -1 -5.307179586466759e-06
   children [
     Shape {
@@ -157,14 +153,14 @@ Solid {
         }
       }
       geometry Box {
-        size 0.2 0.001 0.2
+        size 0.5 0.001 0.5
       }
     }
   ]
   name "aruco_board_4"
 }
 Solid {
-  translation -0.309401 1.76657 0.1
+  translation -0.789401 1.15657 0.25
   rotation 0 0 1 1.5708
   children [
     Shape {
@@ -176,7 +172,7 @@ Solid {
         }
       }
       geometry Box {
-        size 0.2 0.001 0.2
+        size 0.5 0.001 0.5
       }
     }
   ]
