@@ -11,8 +11,8 @@ WorldInfo {
   basicTimeStep 64
 }
 Viewpoint {
-  orientation 0.11620173577829354 -0.8841768753856193 -0.4524692361204622 5.781124221366005
-  position -6.59158662536467 -0.4197764109340494 2.8104723941442797
+  orientation -0.2552373809716614 -0.30664542079224044 0.9169637207991802 4.809048820972121
+  position -2.850660644226654 5.349243047396744 2.966471657847846
   follow "TurtleBot3Burger"
   followType "Pan and Tilt Shot"
 }
@@ -39,7 +39,7 @@ WoodenBox {
   size 0.3 0.3 0.3
 }
 WoodenBox {
-  translation -1.27271 1.08968 0.15
+  translation -1.30271 1.08968 0.15
   name "wooden box(3)"
   size 0.3 0.3 0.3
 }
@@ -74,8 +74,8 @@ WoodenBox {
   size 0.3 0.3 0.3
 }
 TurtleBot3Burger {
-  translation -1.5 -0.88 0
-  rotation 0 0 1 0
+  translation -2.09984 -0.878 -0.0116145
+  rotation -0.0027464164511811534 -0.9842901540155778 -0.17653710631101566 0.009494699330121332
   controller "tb3_pbvs_aruco"
   extensionSlot [
     Camera {
@@ -181,4 +181,42 @@ Solid {
     }
   ]
   name "aruco_board_5"
+}
+Solid {
+  translation -0.8994 0.14657 0.1
+  rotation 0 0 -1 -5.307179586466759e-06
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "textures/aruco_6.png"
+          ]
+        }
+      }
+      geometry Box {
+        size 0.2 0.001 0.2
+      }
+    }
+  ]
+  name "aruco_board_6"
+}
+Solid {
+  translation -2.1794 0.71657 0.1
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "textures/aruco_7.png"
+          ]
+        }
+      }
+      geometry Box {
+        size 0.2 0.001 0.2
+      }
+    }
+  ]
+  name "aruco_board_7"
 }

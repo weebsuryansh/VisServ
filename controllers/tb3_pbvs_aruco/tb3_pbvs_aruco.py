@@ -15,7 +15,7 @@ except ImportError:
 # =========================== PARAMETERS =====================================
 
 # ArUco marker(s) that represent the goal
-TARGET_IDS = [1, 2, 3, 4, 5]          # you can put [1, 5, 7] etc; we will visit them in order
+TARGET_IDS = [1, 2, 3, 4, 5, 6, 7]          # you can put [1, 5, 7] etc; we will visit them in order
 
 # ArUco dictionary used when printing the markers
 ARUCO_DICT_NAME = "DICT_4X4_50"
