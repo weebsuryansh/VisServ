@@ -43,10 +43,15 @@ K_YAW = 2.0               # gain on bearing angle atan2(X, Z) -> angular speed
 MAX_V = 0.25              # max forward speed (m/s)
 MAX_OMEGA = 1.5           # max angular speed (rad/s)
 
-# LiDAR-based soft safety (front sector only)
+# LiDAR-based safety / obstacle handling
 USE_LIDAR = True
-SOFT_STOP_MARGIN = 0.10   # keep at least 10 cm from any front obstacle
-FRONT_SECTOR_DEG = 60.0   # ±30° front cone
+
+# 🔧 WIDENED: use roughly half-circle in front so “half-screen” obstacles count
+FRONT_SECTOR_DEG = 180.0      # ±90° front cone for front distance
+
+# We still keep your “come close then decide marker vs obstacle” idea:
+OBSTACLE_CHECK_DIST = 0.10    # come as close as 10 cm, then decide
+SOFT_STOP_MARGIN = 0.02       # tiny extra safety margin when it *is* a marker
 
 
 # ========================== UTILITY FUNCS ===================================
@@ -82,12 +87,14 @@ class PBVSTurtleBot:
         self.camera = self.robot.getDevice("camera")
         self.camera.enable(self.timestep)
 
-        # LiDAR (optional but recommended)
+        # LiDAR
         self.lidar = None
         if USE_LIDAR:
             try:
                 self.lidar = self.robot.getDevice("LDS-01")
                 self.lidar.enable(self.timestep)
+                # 🔧 NEW: enable visual point-cloud so you can see it in Optional Rendering
+                self.lidar.enablePointCloud()
             except Exception:
                 print("[WARN] LiDAR 'LDS-01' not found; safety limiting disabled.")
                 self.lidar = None
@@ -127,7 +134,6 @@ class PBVSTurtleBot:
         if hasattr(cv2.aruco, "DetectorParameters_create"):
             self.aruco_params = cv2.aruco.DetectorParameters_create()
         else:
-            # For versions where DetectorParameters_create does not exist
             self.aruco_params = cv2.aruco.DetectorParameters()
 
         print("[INFO] ArUco detector initialized with", ARUCO_DICT_NAME)
@@ -160,6 +166,9 @@ class PBVSTurtleBot:
         """
         Minimum distance in a front LiDAR sector (if LiDAR exists).
         Returns +inf if LiDAR missing or all invalid.
+
+        🔧 Uses a wide ±90° sector now, so even obstacles that “cover half
+        the screen” but are a bit off-center will trigger.
         """
         if self.lidar is None:
             return float('inf')
@@ -185,21 +194,59 @@ class PBVSTurtleBot:
         return min_front
 
     # ------------------------------------------------------------------ #
+    def compute_lidar_turn(self):
+        """Decide a turn direction based on LiDAR point cloud.
+        Looks at left vs right free space and returns an angular velocity
+        (sign only; magnitude is modest) that steers towards the more open side.
+        """
+        if self.lidar is None:
+            return 0.0
+
+        ranges = self.lidar.getRangeImage()
+        res = self.lidar.getHorizontalResolution()
+        fov = self.lidar.getFov()
+
+        if res <= 1 or fov <= 0.0:
+            return 0.0
+
+        left_sum = 0.0
+        left_cnt = 0
+        right_sum = 0.0
+        right_cnt = 0
+
+        for i, r in enumerate(ranges):
+            if not math.isfinite(r):
+                continue
+            angle = -fov / 2.0 + i * fov / (res - 1)
+            # negative angle = right, positive = left
+            if angle < 0.0:
+                right_sum += r
+                right_cnt += 1
+            elif angle > 0.0:
+                left_sum += r
+                left_cnt += 1
+
+        left_avg = left_sum / left_cnt if left_cnt > 0 else 0.0
+        right_avg = right_sum / right_cnt if right_cnt > 0 else 0.0
+
+        TURN_SPEED = 0.8
+
+        if left_avg == 0.0 and right_avg == 0.0:
+            return TURN_SPEED  # arbitrary
+
+        if left_avg > right_avg:
+            return TURN_SPEED      # turn left
+        elif right_avg > left_avg:
+            return -TURN_SPEED     # turn right
+        else:
+            return TURN_SPEED
+
+    # ------------------------------------------------------------------ #
     def get_best_marker_pose(self, allowed_ids=None):
         """
         Detect ArUco markers and return pose of the closest marker whose ID is allowed.
 
-        Parameters
-        ----------
-        allowed_ids : iterable of int or None
-            If not None, restrict detection to this list of ArUco IDs. If None,
-            use the global TARGET_IDS list.
-
-        Returns
-        -------
-        (found, (X, Y, Z), marker_id)
-            Pose in camera frame and the corresponding marker ID.
-            Z is forward, X is right, Y is down.
+        Returns (found, (X, Y, Z), marker_id) in camera frame.
         """
         if not HAVE_CV or self.aruco_dict is None or self.cam_matrix is None:
             return False, None, None
@@ -210,7 +257,6 @@ class PBVSTurtleBot:
         if img_bytes is None:
             return False, None, None
 
-        # Webots camera returns BGRA
         img = np.frombuffer(img_bytes, dtype=np.uint8).reshape((height, width, 4))
         gray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
 
@@ -223,7 +269,6 @@ class PBVSTurtleBot:
 
         ids = ids.flatten()
 
-        # Decide which IDs are acceptable for this call
         if allowed_ids is None:
             allowed_ids = TARGET_IDS
 
@@ -231,23 +276,18 @@ class PBVSTurtleBot:
             return False, None, None
 
         allowed_set = {int(a) for a in allowed_ids}
-
-        # Filter out only markers whose ID is in allowed_ids
         valid_indices = [i for i, mid in enumerate(ids) if int(mid) in allowed_set]
         if not valid_indices:
             return False, None, None
 
-        # Pose estimation for all detected markers
-        # estimatePoseSingleMarkers expects the whole list
         rvecs, tvecs, _obj = cv2.aruco.estimatePoseSingleMarkers(
             corners, MARKER_LENGTH, self.cam_matrix, self.dist_coeffs
         )
 
-        # Pick the closest valid target (smallest Z)
         best_idx = None
         best_Z = float("inf")
         for idx in valid_indices:
-            Z = float(tvecs[idx][0][2])  # tvecs[idx] is shape (1,3)
+            Z = float(tvecs[idx][0][2])
             if Z < best_Z:
                 best_Z = Z
                 best_idx = idx
@@ -255,7 +295,7 @@ class PBVSTurtleBot:
         if best_idx is None:
             return False, None, None
 
-        tvec = tvecs[best_idx][0]  # [X, Y, Z]
+        tvec = tvecs[best_idx][0]
         X = float(tvec[0])
         Y = float(tvec[1])
         Z = float(tvec[2])
@@ -266,30 +306,23 @@ class PBVSTurtleBot:
     # ------------------------------------------------------------------ #
     def pbvs_control(self, X, Z):
         """
-        Simple PBVS control law for mobile robot:
-        - Use (Z - DESIRED_Z) to set forward speed
-        - Use bearing atan2(X, Z) to set angular speed
+        PBVS control law:
+        - Use (Z - DESIRED_Z) for forward speed
+        - Use bearing atan2(X, Z) for angular speed
         """
-        # If we are behind desired distance, no forward motion
         if Z <= 0.0:
             return 0.0, 0.0
 
-        # Bearing angle of marker in camera frame
-        bearing = math.atan2(X, Z)  # rad; +ve means marker to the right
-
-        # Distance error in depth
+        bearing = math.atan2(X, Z)
         z_err = Z - DESIRED_Z
 
-        # Control law
-        omega = -K_YAW * bearing          # negative to turn towards marker
+        omega = -K_YAW * bearing
         v = KV_Z * z_err * math.cos(bearing)
 
-        # Limit speeds
         v = clamp(v, -MAX_V, MAX_V)
         omega = clamp(omega, -MAX_OMEGA, MAX_OMEGA)
 
-        # When bearing is large, prioritize turning
-        if abs(bearing) > 0.5:   # ~30 degrees
+        if abs(bearing) > 0.5:
             v = 0.0
 
         return v, omega
@@ -313,7 +346,6 @@ class PBVSTurtleBot:
 
         while self.step() != -1:
             if not HAVE_CV or self.cam_matrix is None:
-                # Nothing we can do without vision
                 self.left_motor.setVelocity(0.0)
                 self.right_motor.setVelocity(0.0)
                 continue
@@ -321,7 +353,7 @@ class PBVSTurtleBot:
             v_cmd = 0.0
             omega_cmd = 0.0
 
-            # 1) Get marker pose in camera frame for the CURRENT target only
+            # 1) Marker → marker logic (unchanged)
             if self.goal_reached or self.current_target_id is None:
                 found = False
                 pose = None
@@ -332,12 +364,10 @@ class PBVSTurtleBot:
             if found and not self.goal_reached:
                 X, Y, Z = pose
 
-                # Extra safety: verify ID, even though we filtered by it
                 if marker_id != self.current_target_id:
                     print(f"[DEBUG] Saw marker {marker_id}, ignoring; expecting {self.current_target_id}")
                 else:
-                    # Check if we are “close enough” to the desired pose for this marker
-                    if (abs(Z - DESIRED_Z) <= Z_TOL):
+                    if abs(Z - DESIRED_Z) <= Z_TOL:
                         is_last = (self.current_target_index == len(TARGET_IDS) - 1)
 
                         if is_last:
@@ -355,11 +385,8 @@ class PBVSTurtleBot:
                             v_cmd = 0.0
                             omega_cmd = 0.0
                     else:
-                        # PBVS control towards the current marker
                         v_cmd, omega_cmd = self.pbvs_control(X, Z)
-
-            if not found:
-                # Marker not visible or all goals reached -> stop or slowly search
+            else:
                 if not self.goal_reached and self.current_target_id is not None:
                     v_cmd = 0.0
                     omega_cmd = 0.4   # slow rotation to find the marker
@@ -367,18 +394,44 @@ class PBVSTurtleBot:
                     v_cmd = 0.0
                     omega_cmd = 0.0
 
-            # 2) LiDAR soft limiter (only shrink v, never flip direction or spin)
-            front_dist = self.get_front_distance() if USE_LIDAR else float("inf")
-            if math.isfinite(front_dist):
-                # Available safe distance ahead (minus margin)
-                safe_space = front_dist - SOFT_STOP_MARGIN
-                if safe_space <= 0.0 and v_cmd > 0.0:
-                    v_cmd = 0.0
-                elif v_cmd > 0.0:
-                    # Limit speed so we do not try to run faster than remaining space
-                    v_cmd = min(v_cmd, safe_space / 0.5)  # simple scaling factor
+            # 2) LiDAR: “come to 0.1 m, then decide marker vs obstacle”
+            if USE_LIDAR:
+                front_dist = self.get_front_distance()
+            else:
+                front_dist = float('inf')
 
-            # 3) Apply differential drive inverse and clamp wheel speeds
+            obstacle_is_marker = (
+                found
+                and not self.goal_reached
+                and self.current_target_id is not None
+                and marker_id == self.current_target_id
+            )
+
+            if math.isfinite(front_dist) and front_dist <= OBSTACLE_CHECK_DIST:
+                # Really close to something (within 10 cm)
+                if not obstacle_is_marker:
+                    # Not the current marker: treat as obstacle
+                    if v_cmd > 0.0:
+                        v_cmd = 0.0
+                    turn = self.compute_lidar_turn()
+                    if abs(turn) > abs(omega_cmd):
+                        omega_cmd = turn
+                else:
+                    # Close, but it *is* the marker: let PBVS finish, with a tiny margin
+                    safe_space = front_dist - SOFT_STOP_MARGIN
+                    if v_cmd > 0.0 and math.isfinite(safe_space):
+                        if safe_space <= 0.0:
+                            v_cmd = 0.0
+                        else:
+                            v_cmd = min(v_cmd, safe_space / 0.2)
+            else:
+                # Slightly further away: mostly leave PBVS alone, maybe creep in if tight
+                if math.isfinite(front_dist) and v_cmd > 0.0:
+                    safe_space = front_dist - (OBSTACLE_CHECK_DIST + SOFT_STOP_MARGIN)
+                    if safe_space <= 0.0:
+                        v_cmd = min(v_cmd, 0.05)
+
+            # 3) Apply wheel commands
             v_l, v_r = diff_drive_inverse(v_cmd, omega_cmd)
             v_l = clamp(v_l, -MAX_WHEEL_VEL, MAX_WHEEL_VEL)
             v_r = clamp(v_r, -MAX_WHEEL_VEL, MAX_WHEEL_VEL)

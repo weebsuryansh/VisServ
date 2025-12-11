@@ -11,8 +11,8 @@ WorldInfo {
   basicTimeStep 64
 }
 Viewpoint {
-  orientation 0.5736801911629024 -0.5803952417067486 -0.57795536304412 4.211265306390162
-  position -1.0109894435591646 -0.8357435036844657 2.081443537914731
+  orientation 0.11620173577829354 -0.8841768753856193 -0.4524692361204622 5.781124221366005
+  position -6.59158662536467 -0.4197764109340494 2.8104723941442797
   follow "TurtleBot3Burger"
   followType "Pan and Tilt Shot"
 }
@@ -126,7 +126,7 @@ Solid {
   name "aruco_board_2"
 }
 Solid {
-  translation 0.6 0.11 0.1
+  translation 0.83 -0.13 0.1
   rotation 0 0 1 -1.5707953071795862
   children [
     Shape {
@@ -145,7 +145,7 @@ Solid {
   name "aruco_board_3"
 }
 Solid {
-  translation 0.584999 1.7698 0.1
+  translation 0.584999 2.2098 0.1
   rotation 0 0 -1 -5.307179586466759e-06
   children [
     Shape {
@@ -164,7 +164,7 @@ Solid {
   name "aruco_board_4"
 }
 Solid {
-  translation -0.309401 1.76657 0.1
+  translation -1.1694 1.76657 0.1
   rotation 0 0 1 1.5708
   children [
     Shape {
