@@ -11,8 +11,8 @@ WorldInfo {
   basicTimeStep 64
 }
 Viewpoint {
-  orientation -0.2552373809716614 -0.30664542079224044 0.9169637207991802 4.809048820972121
-  position -2.850660644226654 5.349243047396744 2.966471657847846
+  orientation 0.05020420781822755 -0.9857512087628457 -0.16054311551708714 5.854541093836763
+  position -5.57309164075153 -0.39368381660683727 2.4599661768146386
   follow "TurtleBot3Burger"
   followType "Pan and Tilt Shot"
 }
@@ -25,57 +25,60 @@ CircleArena {
   wallHeight 0.4
 }
 WoodenBox {
-  translation 0.467367 -0.545426 0.15
-  size 0.3 0.3 0.3
+  translation -0.272454 -0.292497 0.1
+  rotation 0 0 1 -1.3089953071795861
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation 1.26618 1.07342 0.15
+  translation 0.99618 0.78342 0.1
+  rotation 0 0 1 -0.261795307179586
   name "wooden box(1)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation -0.15697 0.782967 0.15
+  translation -0.15697 0.952967 0.1
   name "wooden box(2)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation -1.30271 1.08968 0.15
+  translation -0.84271 1.44968 0.1
   name "wooden box(3)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation -1.09887 -0.301011 0.15
+  translation -1.03887 -0.751011 0.1
   name "wooden box(4)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation -2.71307 -0.22263 0.15
+  translation 0.96095 1.70041 0.1
+  rotation 0 0 1 -1.5707953071795862
   name "wooden box(7)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation -0.744103 2.69736 0.15
+  translation 0.315897 1.79736 0.1
   name "wooden box(8)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation 2.30103 0.203241 0.15
+  translation 0.78103 -0.266759 0.1
   name "wooden box(9)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation 0.005323 -1.57959 0.15
+  translation 0.635323 -0.96959 0.1
   name "wooden box(5)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 WoodenBox {
-  translation -1.0974 -1.8598 0.15
+  translation -0.5374 -1.3098 0.1
   name "wooden box(6)"
-  size 0.3 0.3 0.3
+  size 0.2 0.2 0.2
 }
 TurtleBot3Burger {
-  translation -2.09984 -0.878 -0.0116145
-  rotation -0.0027464164511811534 -0.9842901540155778 -0.17653710631101566 0.009494699330121332
+  translation -1.76 -0.88 0
+  rotation 0 0 1 0
   controller "tb3_pbvs_aruco"
   extensionSlot [
     Camera {
@@ -89,7 +92,7 @@ TurtleBot3Burger {
   ]
 }
 Solid {
-  translation -0.312722 -0.896095 0.1
+  translation 0.00727756 -0.96609 0.1
   rotation 0 0 1 1.5708
   children [
     Shape {
@@ -108,7 +111,8 @@ Solid {
   name "aruco_board_1"
 }
 Solid {
-  translation -0.25 0.11 0.1
+  translation 0.104208 0.166004 0.1
+  rotation 0 0 1 -0.261795307179586
   children [
     Shape {
       appearance PBRAppearance {
@@ -126,7 +130,7 @@ Solid {
   name "aruco_board_2"
 }
 Solid {
-  translation 0.83 -0.13 0.1
+  translation 1.26 0.2 0.1
   rotation 0 0 1 -1.5707953071795862
   children [
     Shape {
@@ -145,8 +149,8 @@ Solid {
   name "aruco_board_3"
 }
 Solid {
-  translation 0.584999 2.2098 0.1
-  rotation 0 0 -1 -5.307179586466759e-06
+  translation 0.461079 1.18588 0.1
+  rotation 0 0 1 0.523604
   children [
     Shape {
       appearance PBRAppearance {
@@ -164,8 +168,8 @@ Solid {
   name "aruco_board_4"
 }
 Solid {
-  translation -1.1694 1.76657 0.1
-  rotation 0 0 1 1.5708
+  translation -0.429608 1.88676 0.1
+  rotation 9.58979e-09 -1.66098e-08 1 1.0472
   children [
     Shape {
       appearance PBRAppearance {
@@ -183,8 +187,8 @@ Solid {
   name "aruco_board_5"
 }
 Solid {
-  translation -0.8994 0.14657 0.1
-  rotation 0 0 -1 -5.307179586466759e-06
+  translation 1.25309 1.44153 0.1
+  rotation -2.85763e-08 -7.65718e-09 1 -1.5707953071795862
   children [
     Shape {
       appearance PBRAppearance {
@@ -200,23 +204,4 @@ Solid {
     }
   ]
   name "aruco_board_6"
-}
-Solid {
-  translation -2.1794 0.71657 0.1
-  rotation 0 0 1 -1.5707953071795862
-  children [
-    Shape {
-      appearance PBRAppearance {
-        baseColorMap ImageTexture {
-          url [
-            "textures/aruco_7.png"
-          ]
-        }
-      }
-      geometry Box {
-        size 0.2 0.001 0.2
-      }
-    }
-  ]
-  name "aruco_board_7"
 }
