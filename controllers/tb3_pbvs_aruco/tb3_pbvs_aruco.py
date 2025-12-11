@@ -15,7 +15,7 @@ except ImportError:
 # =========================== PARAMETERS =====================================
 
 # ArUco marker(s) that represent the goal
-TARGET_IDS = [1, 2, 3, 4, 5]          # you can put [1, 5, 7] etc; we will pick the closest visible
+TARGET_IDS = [1, 2, 3, 4, 5]          # you can put [1, 5, 7] etc; we will visit them in order
 
 # ArUco dictionary used when printing the markers
 ARUCO_DICT_NAME = "DICT_4X4_50"
@@ -25,7 +25,7 @@ MARKER_LENGTH = 0.14      # e.g. 14 cm; change to your actual printed size
 
 # Desired final relative pose of marker in camera frame (PBVS target)
 DESIRED_Z = 0.20          # want marker 20 cm in front of camera
-DESIRED_X = 0.0           # centered horizontally
+DESIRED_X = 0.20          # centered horizontally
 
 # Tolerances to declare "goal reached"
 Z_TOL = 0.03              # 3 cm
@@ -104,7 +104,10 @@ class PBVSTurtleBot:
         else:
             print("[ERROR] Cannot run PBVS without OpenCV + numpy.")
 
-        self.goal_reached = False
+        # Multi-marker navigation state
+        self.goal_reached = False   # True when all markers in TARGET_IDS are reached
+        self.current_target_index = 0
+        self.current_target_id = TARGET_IDS[0] if TARGET_IDS else None
 
     # ------------------------------------------------------------------ #
     def _init_aruco(self):
@@ -124,6 +127,7 @@ class PBVSTurtleBot:
         if hasattr(cv2.aruco, "DetectorParameters_create"):
             self.aruco_params = cv2.aruco.DetectorParameters_create()
         else:
+            # For versions where DetectorParameters_create does not exist
             self.aruco_params = cv2.aruco.DetectorParameters()
 
         print("[INFO] ArUco detector initialized with", ARUCO_DICT_NAME)
@@ -181,21 +185,30 @@ class PBVSTurtleBot:
         return min_front
 
     # ------------------------------------------------------------------ #
-    def get_best_marker_pose(self):
+    def get_best_marker_pose(self, allowed_ids=None):
         """
-        Detect ArUco markers and return pose of the closest TARGET_ID marker.
+        Detect ArUco markers and return pose of the closest marker whose ID is allowed.
 
-        Returns: (found, X, Y, Z) in camera frame,
-                 where Z is forward, X is right, Y is down.
+        Parameters
+        ----------
+        allowed_ids : iterable of int or None
+            If not None, restrict detection to this list of ArUco IDs. If None,
+            use the global TARGET_IDS list.
+
+        Returns
+        -------
+        (found, (X, Y, Z), marker_id)
+            Pose in camera frame and the corresponding marker ID.
+            Z is forward, X is right, Y is down.
         """
         if not HAVE_CV or self.aruco_dict is None or self.cam_matrix is None:
-            return False, None
+            return False, None, None
 
         width = self.camera.getWidth()
         height = self.camera.getHeight()
         img_bytes = self.camera.getImage()
         if img_bytes is None:
-            return False, None
+            return False, None, None
 
         # Webots camera returns BGRA
         img = np.frombuffer(img_bytes, dtype=np.uint8).reshape((height, width, 4))
@@ -206,14 +219,23 @@ class PBVSTurtleBot:
         )
 
         if ids is None or len(ids) == 0:
-            return False, None
+            return False, None, None
 
         ids = ids.flatten()
 
-        # Filter out only markers whose ID is in TARGET_IDS
-        valid_indices = [i for i, mid in enumerate(ids) if mid in TARGET_IDS]
+        # Decide which IDs are acceptable for this call
+        if allowed_ids is None:
+            allowed_ids = TARGET_IDS
+
+        if not allowed_ids:
+            return False, None, None
+
+        allowed_set = {int(a) for a in allowed_ids}
+
+        # Filter out only markers whose ID is in allowed_ids
+        valid_indices = [i for i, mid in enumerate(ids) if int(mid) in allowed_set]
         if not valid_indices:
-            return False, None
+            return False, None, None
 
         # Pose estimation for all detected markers
         # estimatePoseSingleMarkers expects the whole list
@@ -223,7 +245,7 @@ class PBVSTurtleBot:
 
         # Pick the closest valid target (smallest Z)
         best_idx = None
-        best_Z = float('inf')
+        best_Z = float("inf")
         for idx in valid_indices:
             Z = float(tvecs[idx][0][2])  # tvecs[idx] is shape (1,3)
             if Z < best_Z:
@@ -231,14 +253,15 @@ class PBVSTurtleBot:
                 best_idx = idx
 
         if best_idx is None:
-            return False, None
+            return False, None, None
 
         tvec = tvecs[best_idx][0]  # [X, Y, Z]
         X = float(tvec[0])
         Y = float(tvec[1])
         Z = float(tvec[2])
+        marker_id = int(ids[best_idx])
 
-        return True, (X, Y, Z)
+        return True, (X, Y, Z), marker_id
 
     # ------------------------------------------------------------------ #
     def pbvs_control(self, X, Z):
@@ -282,6 +305,12 @@ class PBVSTurtleBot:
         print("[INFO] Desired camera-frame marker pose: X=%.2f, Z=%.2f" %
               (DESIRED_X, DESIRED_Z))
 
+        if TARGET_IDS:
+            print(f"[INFO] Marker visit sequence: {TARGET_IDS}")
+            print(f"[INFO] Starting with marker {self.current_target_id}")
+        else:
+            print("[WARN] TARGET_IDS is empty; robot will not move toward any marker.")
+
         while self.step() != -1:
             if not HAVE_CV or self.cam_matrix is None:
                 # Nothing we can do without vision
@@ -292,24 +321,46 @@ class PBVSTurtleBot:
             v_cmd = 0.0
             omega_cmd = 0.0
 
-            # 1) Get marker pose in camera frame
-            found, pose = self.get_best_marker_pose()
+            # 1) Get marker pose in camera frame for the CURRENT target only
+            if self.goal_reached or self.current_target_id is None:
+                found = False
+                pose = None
+                marker_id = None
+            else:
+                found, pose, marker_id = self.get_best_marker_pose([self.current_target_id])
 
             if found and not self.goal_reached:
                 X, Y, Z = pose
 
-                # Check if we are “close enough” to target pose
-                if (abs(X - DESIRED_X) < X_TOL) and (abs(Z - DESIRED_Z) < Z_TOL):
-                    print("[INFO] PBVS goal reached. Holding position.")
-                    self.goal_reached = True
-                    v_cmd = 0.0
-                    omega_cmd = 0.0
+                # Extra safety: verify ID, even though we filtered by it
+                if marker_id != self.current_target_id:
+                    print(f"[DEBUG] Saw marker {marker_id}, ignoring; expecting {self.current_target_id}")
                 else:
-                    # PBVS control
-                    v_cmd, omega_cmd = self.pbvs_control(X, Z)
-            else:
-                # Marker not visible or already at goal -> stop or slowly search
-                if not self.goal_reached:
+                    # Check if we are “close enough” to the desired pose for this marker
+                    if (abs(Z - DESIRED_Z) <= Z_TOL):
+                        is_last = (self.current_target_index == len(TARGET_IDS) - 1)
+
+                        if is_last:
+                            print(f"[INFO] Reached final marker {marker_id}. "
+                                  f"All markers done, holding position.")
+                            self.goal_reached = True
+                            v_cmd = 0.0
+                            omega_cmd = 0.0
+                        else:
+                            next_id = TARGET_IDS[self.current_target_index + 1]
+                            print(f"[INFO] Reached marker {marker_id}. "
+                                  f"Moving to next marker {next_id}.")
+                            self.current_target_index += 1
+                            self.current_target_id = next_id
+                            v_cmd = 0.0
+                            omega_cmd = 0.0
+                    else:
+                        # PBVS control towards the current marker
+                        v_cmd, omega_cmd = self.pbvs_control(X, Z)
+
+            if not found:
+                # Marker not visible or all goals reached -> stop or slowly search
+                if not self.goal_reached and self.current_target_id is not None:
                     v_cmd = 0.0
                     omega_cmd = 0.4   # slow rotation to find the marker
                 else:
@@ -317,14 +368,14 @@ class PBVSTurtleBot:
                     omega_cmd = 0.0
 
             # 2) LiDAR soft limiter (only shrink v, never flip direction or spin)
-            front_dist = self.get_front_distance() if USE_LIDAR else float('inf')
+            front_dist = self.get_front_distance() if USE_LIDAR else float("inf")
             if math.isfinite(front_dist):
                 # Available safe distance ahead (minus margin)
                 safe_space = front_dist - SOFT_STOP_MARGIN
                 if safe_space <= 0.0 and v_cmd > 0.0:
                     v_cmd = 0.0
                 elif v_cmd > 0.0:
-                    # Limit speed so we don't try to run faster than remaining space
+                    # Limit speed so we do not try to run faster than remaining space
                     v_cmd = min(v_cmd, safe_space / 0.5)  # simple scaling factor
 
             # 3) Apply differential drive inverse and clamp wheel speeds

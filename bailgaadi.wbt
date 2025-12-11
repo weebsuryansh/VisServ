@@ -11,8 +11,8 @@ WorldInfo {
   basicTimeStep 64
 }
 Viewpoint {
-  orientation 0.052327718608097505 -0.6428038548581566 0.7642414631808234 6.194665590424444
-  position -2.733048368471996 -0.8866143482744976 0.26067476398556927
+  orientation 0.5736801911629024 -0.5803952417067486 -0.57795536304412 4.211265306390162
+  position -1.0109894435591646 -0.8357435036844657 2.081443537914731
   follow "TurtleBot3Burger"
   followType "Pan and Tilt Shot"
 }
@@ -74,14 +74,12 @@ WoodenBox {
   size 0.3 0.3 0.3
 }
 TurtleBot3Burger {
-  hidden rotation_9 0 1 0 4.240105495306963
-  hidden rotation_11 -0.5935386436405461 0.8033626510284843 -0.04816979798407552 0.9806472125419545
-  translation -1.5 -1 0
+  translation -1.5 -0.88 0
   rotation 0 0 1 0
-  controller "tb3_visual_servo"
+  controller "tb3_pbvs_aruco"
   extensionSlot [
     Camera {
-      translation 0.05 0 -0.03
+      translation 0.055 0 -0.05
       fieldOfView 1
       width 640
       height 480
