@@ -5,13 +5,14 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/CircleArena.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/factory/containers/protos/WoodenBox.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/robots/robotis/turtlebot/protos/TurtleBot3Burger.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/devices/robotis/protos/RobotisLds01.proto"
 
 WorldInfo {
   basicTimeStep 64
 }
 Viewpoint {
-  orientation 0.4548084492633487 0.7188566216543745 -0.5257322816627561 1.7549245787936407
-  position 0 0 10.92066448904178
+  orientation 0.052327718608097505 -0.6428038548581566 0.7642414631808234 6.194665590424444
+  position -2.733048368471996 -0.8866143482744976 0.26067476398556927
   follow "TurtleBot3Burger"
   followType "Pan and Tilt Shot"
 }
@@ -38,7 +39,7 @@ WoodenBox {
   size 0.3 0.3 0.3
 }
 WoodenBox {
-  translation -1.62271 1.08968 0.15
+  translation -1.27271 1.08968 0.15
   name "wooden box(3)"
   size 0.3 0.3 0.3
 }
@@ -73,28 +74,113 @@ WoodenBox {
   size 0.3 0.3 0.3
 }
 TurtleBot3Burger {
-  hidden position_0_0 62.803922606068504
-  hidden position_0_1 74.17545995884518
-  hidden position_0_2 -427.20917582113265
-  hidden position2_0_2 0.34406682441384107
-  hidden position3_0_2 -75.31648928732153
-  hidden linearVelocity_0 -0.025148186777544553 -0.042647978804917226 5.852857994875328e-09
-  hidden angularVelocity_0 -2.2069116892603952e-07 -8.982764401665458e-07 -0.02341033535061703
-  hidden position_1_0 1328.757760000002
-  hidden position_1_1 2567.5161600000006
-  hidden rotation_2 0.04807795015547362 -0.7062877763328198 -0.706290370677449 3.2376742163201446
-  hidden translation_3 -0.07687546858193291 -0.01 0.034098466825446476
-  hidden rotation_3 0.29926670836055735 0.6746984856349723 0.6747009639454447 3.723158464080037
-  hidden rotation_8 0 -1 0 1.5987264657273608
-  hidden linearVelocity_8 -0.02483470773360711 -0.04064017475841797 -7.26308777515711e-08
-  hidden angularVelocity_8 1.2265001258868677 -0.7495092901528438 -0.02376547530523271
-  hidden rotation_9 -0.17313659205036488 -1.3355792342626037e-06 -0.9848978223609808 3.141588842971681
-  hidden linearVelocity_9 -0.02678764461427234 -0.0438363796516356 6.564774856404871e-08
-  hidden angularVelocity_9 1.3333766871062493 -0.8147913899346323 -0.023809770410640585
-  hidden rotation_10 0.1701082291455883 0.9535988454035628 0.24841987123002812 0.3585468369341546
-  hidden linearVelocity_10 -0.02419861170133021 -0.043223703097853707 1.875772263431317e-08
-  hidden angularVelocity_10 10.805925774218897 -6.049652925713961 -6.184156123662025e-15
-  translation 0.6785354451710421 -1.4378693951102757 -0.0004935222175054196
-  rotation -0.00468922020706095 -0.0026130314443274837 -0.9999855915364584 2.120293908073814
-  controller "turtlebot3_ostacle_avoidance"
+  hidden rotation_9 0 1 0 4.240105495306963
+  hidden rotation_11 -0.5935386436405461 0.8033626510284843 -0.04816979798407552 0.9806472125419545
+  translation -1.5 -1 0
+  rotation 0 0 1 0
+  controller "tb3_visual_servo"
+  extensionSlot [
+    Camera {
+      translation 0.05 0 -0.03
+      fieldOfView 1
+      width 640
+      height 480
+    }
+    RobotisLds01 {
+    }
+  ]
+}
+Solid {
+  translation -0.312722 -0.896095 0.1
+  rotation 0 0 1 1.5708
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "textures/aruco_1.png"
+          ]
+        }
+      }
+      geometry Box {
+        size 0.2 0.001 0.2
+      }
+    }
+  ]
+  name "aruco_board_1"
+}
+Solid {
+  translation -0.25 0.11 0.1
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "textures/aruco_2.png"
+          ]
+        }
+      }
+      geometry Box {
+        size 0.2 0.001 0.2
+      }
+    }
+  ]
+  name "aruco_board_2"
+}
+Solid {
+  translation 0.6 0.11 0.1
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "textures/aruco_3.png"
+          ]
+        }
+      }
+      geometry Box {
+        size 0.2 0.001 0.2
+      }
+    }
+  ]
+  name "aruco_board_3"
+}
+Solid {
+  translation 0.584999 1.7698 0.1
+  rotation 0 0 -1 -5.307179586466759e-06
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "textures/aruco_4.png"
+          ]
+        }
+      }
+      geometry Box {
+        size 0.2 0.001 0.2
+      }
+    }
+  ]
+  name "aruco_board_4"
+}
+Solid {
+  translation -0.309401 1.76657 0.1
+  rotation 0 0 1 1.5708
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColorMap ImageTexture {
+          url [
+            "textures/aruco_5.png"
+          ]
+        }
+      }
+      geometry Box {
+        size 0.2 0.001 0.2
+      }
+    }
+  ]
+  name "aruco_board_5"
 }
